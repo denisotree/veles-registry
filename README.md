@@ -23,6 +23,8 @@ installed or approved.
 1. Fork this repository.
 2. `veles registry scaffold <module|skill|layout|mcp> <name> --group community --root .`
 3. `veles registry validate .` — the same static checks CI runs (CI also runs `--run-code`).
+   CI installs only Veles and pytest, never an extension's `requires`, so tests that drive
+   a real SDK skip there. Run them locally with the SDK installed.
 4. Open a pull request. A merge after review publishes it.
 
 Rules:

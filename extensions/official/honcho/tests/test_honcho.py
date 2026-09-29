@@ -112,9 +112,13 @@ def test_build_peer_and_base_url_optional() -> None:
     assert p is not None and p.peer_id is None and p.base_url is None
 
 
-def test_build_missing_workspace_returns_none() -> None:
+def test_build_missing_workspace_returns_none(capsys: pytest.CaptureFixture[str]) -> None:
     mod = _load()
     assert mod._build({"api_key": "k", "app_id": "a", "user_id": "u"}) is None
+    assert mod._build({"api_key": "k", "app_id": "a", "user_id": "u"}) is None
+    err = capsys.readouterr().err
+    assert err.count("warning:") == 1  # built every turn: warn once
+    assert "workspace_id" in err and "app_id" in err
 
 
 def test_build_missing_api_key_returns_none() -> None:

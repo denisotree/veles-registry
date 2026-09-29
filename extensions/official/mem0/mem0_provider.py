@@ -14,12 +14,14 @@ Telemetry: the mem0 SDK sends usage telemetry to PostHog unless
 `MEM0_TELEMETRY` is false. Veles never phones home, so this adapter sets
 `MEM0_TELEMETRY=False` (via `setdefault` — an explicit user setting wins)
 before the lazy SDK import; the SDK reads the flag once, when
-`mem0.memory.telemetry` is first imported.
+`mem0.memory.telemetry` is first imported. Even with telemetry off, importing
+the SDK writes `~/.mem0/config.json` (an anonymous `user_id`) on first use.
 
 Every recall makes two requests: the SDK's `GET /v1/ping/` key check (the
 client is built per recall) and the search itself.
 
-Configuration (`~/.veles/config.toml` or project `config.toml`):
+Configuration — only the user config `~/.veles/config.toml` is read (a
+project `config.toml` is not; never put API keys there):
 
     [memory.external.mem0]
     api_key  = "..."
@@ -29,14 +31,29 @@ Configuration (`~/.veles/config.toml` or project `config.toml`):
 """
 
 import os
+import sys
 from dataclasses import dataclass
 from typing import Any
 
-from veles.core.log_util import warn_once
 from veles.core.memory.provider import RecallHit
-from veles.core.text import ellipsize
 
 _SUMMARY_CAP = 200
+
+# Local helpers: a module depends only on Veles's public API (`veles.core.memory.provider`).
+_warned: set[str] = set()
+
+
+def warn_once(msg: str) -> None:
+    """Print `warning: <msg>` to stderr the first time this exact message is seen."""
+    if msg not in _warned:
+        _warned.add(msg)
+        print(f"warning: {msg}", file=sys.stderr)
+
+
+def ellipsize(text: str, cap: int) -> str:
+    """`text` on one line, cut to `cap` characters with a trailing `…` when longer."""
+    line = text.strip().replace("\n", " ")
+    return line if len(line) <= cap else line[: cap - 1].rstrip() + "…"
 
 
 @dataclass(slots=True)
@@ -81,6 +98,7 @@ def _build(cfg: dict[str, Any]) -> Mem0MemoryProvider | None:
     api_key = cfg.get("api_key")
     user_id = cfg.get("user_id")
     if not (api_key and user_id):
+        warn_once("[memory.external.mem0] needs api_key and user_id; Mem0 recall is off")
         return None
     return Mem0MemoryProvider(
         api_key=str(api_key),

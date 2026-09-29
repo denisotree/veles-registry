@@ -6,7 +6,8 @@ peers, and exposes a search over them. This wraps that search as a Veles
 lazily — this module has no hard dependency on it at import time — and every
 failure mode degrades to an empty recall with a warning on stderr.
 
-Configuration (`~/.veles/config.toml` or project `config.toml`):
+Configuration — only the user config `~/.veles/config.toml` is read (a
+project `config.toml` is not; never put API keys there):
 
     [memory.external.honcho]
     api_key      = "..."
@@ -15,15 +16,30 @@ Configuration (`~/.veles/config.toml` or project `config.toml`):
     base_url     = "https://api.honcho.dev"  # optional; self-hosted Honcho
 """
 
+import sys
 from dataclasses import dataclass
 from typing import Any
 
-from veles.core.log_util import warn_once
 from veles.core.memory.provider import RecallHit
-from veles.core.text import ellipsize
 
 _SUMMARY_CAP = 200
 _MAX_LIMIT = 100  # the SDK validates 1 <= limit <= 100
+
+# Local helpers: a module depends only on Veles's public API (`veles.core.memory.provider`).
+_warned: set[str] = set()
+
+
+def warn_once(msg: str) -> None:
+    """Print `warning: <msg>` to stderr the first time this exact message is seen."""
+    if msg not in _warned:
+        _warned.add(msg)
+        print(f"warning: {msg}", file=sys.stderr)
+
+
+def ellipsize(text: str, cap: int) -> str:
+    """`text` on one line, cut to `cap` characters with a trailing `…` when longer."""
+    line = text.strip().replace("\n", " ")
+    return line if len(line) <= cap else line[: cap - 1].rstrip() + "…"
 
 
 @dataclass(slots=True)
@@ -68,6 +84,10 @@ def _build(cfg: dict[str, Any]) -> HonchoMemoryProvider | None:
     api_key = cfg.get("api_key")
     workspace_id = cfg.get("workspace_id")
     if not (api_key and workspace_id):
+        warn_once(
+            "[memory.external.honcho] needs api_key and workspace_id (app_id/user_id were "
+            "replaced by workspace_id/peer_id); Honcho recall is off"
+        )
         return None
     return HonchoMemoryProvider(
         api_key=str(api_key),

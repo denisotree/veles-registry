@@ -101,9 +101,13 @@ def test_build_optional_keys_default_none() -> None:
     assert p is not None and p.user_id is None and p.base_url is None
 
 
-def test_build_missing_api_key_returns_none() -> None:
+def test_build_missing_api_key_returns_none(capsys: pytest.CaptureFixture[str]) -> None:
     mod = _load()
     assert mod._build({"user_id": "u"}) is None
+    assert mod._build({"user_id": "u"}) is None
+    err = capsys.readouterr().err
+    assert err.count("warning:") == 1  # built every turn: warn once
+    assert "api_key" in err
 
 
 # ---------- register() ----------
