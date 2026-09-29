@@ -10,8 +10,14 @@ Entity ids go through `filters` (the SDK rejects them at the top level). With
 `agent_id` set the filter is `user_id OR agent_id`: Mem0 attributes each fact
 to one speaker, so an AND of both would match nothing.
 
-Note: the mem0 SDK sends usage telemetry unless `MEM0_TELEMETRY=False` is set
-in the environment.
+Telemetry: the mem0 SDK sends usage telemetry to PostHog unless
+`MEM0_TELEMETRY` is false. Veles never phones home, so this adapter sets
+`MEM0_TELEMETRY=False` (via `setdefault` — an explicit user setting wins)
+before the lazy SDK import; the SDK reads the flag once, when
+`mem0.memory.telemetry` is first imported.
+
+Every recall makes two requests: the SDK's `GET /v1/ping/` key check (the
+client is built per recall) and the search itself.
 
 Configuration (`~/.veles/config.toml` or project `config.toml`):
 
@@ -22,6 +28,7 @@ Configuration (`~/.veles/config.toml` or project `config.toml`):
     host     = "https://api.mem0.ai"   # optional; self-hosted endpoint
 """
 
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -41,6 +48,7 @@ class Mem0MemoryProvider:
     name: str = "mem0"
 
     def recall(self, query: str, *, limit: int) -> list[RecallHit]:
+        os.environ.setdefault("MEM0_TELEMETRY", "False")  # must precede the first mem0 import
         try:
             from mem0 import MemoryClient
         except ImportError:

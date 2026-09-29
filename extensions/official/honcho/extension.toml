@@ -2,7 +2,7 @@
 name = "honcho"
 kind = "module"
 version = "0.2.0"
-description = "Honcho (honcho.dev) as an external memory provider — configure under [memory.external.honcho] with api_key and workspace_id (required), optional peer_id to search only that peer's messages, and optional base_url for self-hosted Honcho."
+description = "Honcho (honcho.dev) as an external memory provider — configure under [memory.external.honcho] with api_key and workspace_id (required), optional peer_id to search only that peer's messages, and optional base_url for self-hosted Honcho. Each recall makes one extra request: the SDK's workspace get-or-create (POST /v3/workspaces), which creates the workspace if it does not exist."
 license = "Apache-2.0"
 requires_veles = ">=1.2,<2"
 provides = ["memory:honcho"]

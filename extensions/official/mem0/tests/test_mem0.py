@@ -7,6 +7,7 @@ validation, which installs only Veles + pytest).
 
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -27,12 +28,31 @@ def _load():
 
 
 @pytest.fixture
-def respx(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
-    # mem0 reads these at import: no PostHog telemetry (respx can't intercept its
-    # `requests` calls) and no ~/.mem0 directory created by the test run.
-    monkeypatch.setenv("MEM0_TELEMETRY", "False")
+def requests_sent(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """PostHog (mem0 telemetry) sends over `requests`, which respx can't see —
+    block and record every `requests` send instead."""
+    requests = pytest.importorskip("requests")
+    sent: list[str] = []
+
+    def _send(self, request, **kwargs):  # noqa: ANN001
+        sent.append(request.url)
+        raise requests.ConnectionError("network disabled in tests")
+
+    monkeypatch.setattr(requests.Session, "send", _send)
+    return sent
+
+
+@pytest.fixture
+def respx(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, requests_sent: list[str]):
+    # Skip without importing mem0: the adapter's own MEM0_TELEMETRY default must
+    # be in place before the first import, so the test must not import it first.
+    if importlib.util.find_spec("mem0") is None:
+        pytest.skip("mem0ai not installed")
+    # MEM0_TELEMETRY absent (restored after the test) so the adapter's default is
+    # what's exercised; MEM0_DIR keeps the SDK's import-time makedirs off ~/.mem0.
+    monkeypatch.setenv("MEM0_TELEMETRY", "unset")
+    monkeypatch.delenv("MEM0_TELEMETRY")
     monkeypatch.setenv("MEM0_DIR", str(tmp_path / "mem0"))
-    pytest.importorskip("mem0.client")
     return pytest.importorskip("respx")
 
 
@@ -88,6 +108,29 @@ def test_auth_error_returns_empty(respx, capsys: pytest.CaptureFixture[str]) -> 
             mod.Mem0MemoryProvider(api_key="bad", user_id="u", host=HOST).recall("q", limit=5) == []
         )
     assert "Mem0 recall failed" in capsys.readouterr().err
+
+
+def test_telemetry_disabled_and_nothing_sent(respx, requests_sent: list[str]) -> None:
+    mod = _load()
+    with respx.mock(assert_all_called=False) as router:
+        _ping(router)
+        router.post(f"{HOST}/v3/memories/search/").respond(json={"results": []})
+        posthog = router.route(host="us.i.posthog.com")
+        mod.Mem0MemoryProvider(api_key="k", user_id="u", host=HOST).recall("q", limit=1)
+    from mem0.memory import telemetry
+
+    assert telemetry.MEM0_TELEMETRY is False
+    assert telemetry.client_telemetry.posthog is None
+    assert not posthog.called
+    assert requests_sent == []
+
+
+def test_explicit_telemetry_setting_is_kept(monkeypatch: pytest.MonkeyPatch) -> None:
+    mod = _load()
+    monkeypatch.setenv("MEM0_TELEMETRY", "True")
+    monkeypatch.setitem(sys.modules, "mem0", None)
+    mod.Mem0MemoryProvider(api_key="k", user_id="u").recall("q", limit=1)
+    assert os.environ["MEM0_TELEMETRY"] == "True"
 
 
 def test_no_sdk_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:
