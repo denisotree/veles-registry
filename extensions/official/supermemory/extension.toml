@@ -1,0 +1,13 @@
+[extension]
+name = "supermemory"
+kind = "module"
+version = "0.1.0"
+description = "Supermemory (supermemory.ai) as an external memory provider — configure under [memory.external.supermemory] with api_key and optional user_id."
+license = "Apache-2.0"
+requires_veles = ">=1.2,<2"
+provides = ["memory:supermemory"]
+requires = ["supermemory"]
+tags = ["memory", "external"]
+
+[source]
+type = "path"

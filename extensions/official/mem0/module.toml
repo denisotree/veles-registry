@@ -1,0 +1,5 @@
+[module]
+name = "mem0"
+description = "Recalls memories from Mem0 (mem0.ai) as an external memory provider."
+entrypoint = "mem0.py:register"
+version = "0.1.0"

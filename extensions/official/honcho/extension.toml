@@ -1,0 +1,13 @@
+[extension]
+name = "honcho"
+kind = "module"
+version = "0.1.0"
+description = "Honcho (honcho.dev) as an external memory provider — configure under [memory.external.honcho] with api_key, app_id, user_id and optional base_url."
+license = "Apache-2.0"
+requires_veles = ">=1.2,<2"
+provides = ["memory:honcho"]
+requires = ["honcho-ai"]
+tags = ["memory", "external"]
+
+[source]
+type = "path"

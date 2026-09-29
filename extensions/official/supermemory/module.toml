@@ -1,0 +1,5 @@
+[module]
+name = "supermemory"
+description = "Recalls memories from Supermemory (supermemory.ai) as an external memory provider."
+entrypoint = "supermemory.py:register"
+version = "0.1.0"
