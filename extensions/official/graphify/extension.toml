@@ -1,0 +1,15 @@
+[extension]
+name = "graphify"
+kind = "mcp"
+version = "0.1.0"
+description = "graphify knowledge graph of your code and docs as an MCP server (needs `uv tool install \"graphifyy[mcp]\"` and a graph.json in the project root)"
+tags = ["mcp", "knowledge-graph", "code"]
+license = "MIT"
+requires_veles = ">=1.1,<2"
+
+[source]
+type = "path"
+
+[mcp]
+command = "graphify-mcp"
+args = ["graph.json", "--transport", "stdio"]

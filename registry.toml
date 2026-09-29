@@ -1,0 +1,5 @@
+[registry]
+name = "public"
+description = "Official public registry of Veles extensions"
+schema = 1
+public = true

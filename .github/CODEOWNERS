@@ -1,0 +1,6 @@
+# Every change needs an approval from the owners of its group.
+# Branch protection on main requires the `validate` check and a Code Owner review.
+/extensions/official/   @denisotree
+/extensions/community/  @denisotree
+/registry.toml          @denisotree
+/.github/               @denisotree
