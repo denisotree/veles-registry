@@ -1,12 +1,12 @@
 [extension]
 name = "honcho"
 kind = "module"
-version = "0.1.0"
-description = "Honcho (honcho.dev) as an external memory provider — configure under [memory.external.honcho] with api_key, app_id, user_id and optional base_url."
+version = "0.2.0"
+description = "Honcho (honcho.dev) as an external memory provider — configure under [memory.external.honcho] with api_key and workspace_id (required), optional peer_id to search only that peer's messages, and optional base_url for self-hosted Honcho."
 license = "Apache-2.0"
 requires_veles = ">=1.2,<2"
 provides = ["memory:honcho"]
-requires = ["honcho-ai"]
+requires = ["honcho-ai>=2.5"]
 tags = ["memory", "external"]
 
 [source]

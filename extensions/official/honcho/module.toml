@@ -1,5 +1,5 @@
 [module]
 name = "honcho"
 description = "Recalls memories from Honcho (honcho.dev) as an external memory provider."
-entrypoint = "honcho.py:register"
-version = "0.1.0"
+entrypoint = "honcho_provider.py:register"
+version = "0.2.0"

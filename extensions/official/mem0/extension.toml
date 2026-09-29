@@ -1,12 +1,12 @@
 [extension]
 name = "mem0"
 kind = "module"
-version = "0.1.0"
-description = "Mem0 (mem0.ai) as an external memory provider — configure under [memory.external.mem0] with api_key, user_id and optional agent_id."
+version = "0.2.0"
+description = "Mem0 (mem0.ai) platform as an external memory provider — configure under [memory.external.mem0] with api_key and user_id (required), optional agent_id (also recall that agent's memories) and optional host."
 license = "Apache-2.0"
 requires_veles = ">=1.2,<2"
 provides = ["memory:mem0"]
-requires = ["mem0ai"]
+requires = ["mem0ai>=2.0"]
 tags = ["memory", "external"]
 
 [source]
