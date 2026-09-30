@@ -59,10 +59,10 @@ class SupermemoryProvider:
         try:
             client = Supermemory(api_key=self.api_key, base_url=self.base_url)
             response = client.search.memories(**kwargs)
-        except Exception as exc:
+            return [_to_recall_hit(r) for r in response.results]
+        except Exception as exc:  # an unexpected response shape too
             warn_once(f"Supermemory recall failed: {type(exc).__name__}: {exc}")
             return []
-        return [_to_recall_hit(r) for r in response.results]
 
 
 def _to_recall_hit(result: Any) -> RecallHit:

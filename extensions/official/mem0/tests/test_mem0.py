@@ -114,9 +114,12 @@ def test_telemetry_disabled_and_nothing_sent(respx, requests_sent: list[str]) ->
     mod = _load()
     with respx.mock(assert_all_called=False) as router:
         _ping(router)
-        router.post(f"{HOST}/v3/memories/search/").respond(json={"results": []})
+        router.post(f"{HOST}/v3/memories/search/").respond(
+            json={"results": [{"id": "x1", "memory": "m", "score": 0.5}]}
+        )
         posthog = router.route(host="us.i.posthog.com")
-        mod.Mem0MemoryProvider(api_key="k", user_id="u", host=HOST).recall("q", limit=1)
+        hits = mod.Mem0MemoryProvider(api_key="k", user_id="u", host=HOST).recall("q", limit=1)
+    assert [h.rel_path for h in hits] == ["mem0:x1"]  # recall still works with telemetry off
     from mem0.memory import telemetry
 
     assert telemetry.MEM0_TELEMETRY is False
@@ -131,6 +134,28 @@ def test_explicit_telemetry_setting_is_kept(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setitem(sys.modules, "mem0", None)
     mod.Mem0MemoryProvider(api_key="k", user_id="u").recall("q", limit=1)
     assert os.environ["MEM0_TELEMETRY"] == "True"
+
+
+def test_mem0_dir_defaults_under_veles_home(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    mod = _load()
+    monkeypatch.setenv("MEM0_DIR", "unset")
+    monkeypatch.delenv("MEM0_DIR")  # absent, and restored after the test
+    monkeypatch.setenv("VELES_USER_HOME", str(tmp_path / "home"))
+    monkeypatch.setitem(sys.modules, "mem0", None)
+    mod.Mem0MemoryProvider(api_key="k", user_id="u").recall("q", limit=1)
+    # VELES_USER_HOME stands in for `~` (Veles keeps its files in <it>/.veles).
+    assert os.environ["MEM0_DIR"] == str(tmp_path / "home" / ".veles" / "cache" / "mem0")
+
+
+def test_unexpected_response_shape_returns_empty(respx, capsys: pytest.CaptureFixture[str]) -> None:
+    mod = _load()
+    with respx.mock as router:
+        _ping(router)
+        router.post(f"{HOST}/v3/memories/search/").respond(
+            json={"results": [{"id": "x", "score": "not-a-number"}]}
+        )
+        assert mod.Mem0MemoryProvider(api_key="k", user_id="u", host=HOST).recall("q", limit=1) == []
+    assert "Mem0 recall failed" in capsys.readouterr().err
 
 
 def test_no_sdk_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:

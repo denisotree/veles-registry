@@ -1,8 +1,8 @@
 [extension]
 name = "mem0"
 kind = "module"
-version = "0.2.1"
-description = "Mem0 (mem0.ai) platform as an external memory provider — configure under [memory.external.mem0] in ~/.veles/config.toml with api_key and user_id (required), optional agent_id (also recall that agent's memories) and optional host. The mem0 SDK's usage telemetry is disabled by default (MEM0_TELEMETRY=False unless you set it yourself); even so, importing the SDK writes ~/.mem0/config.json with an anonymous user id. Each recall makes one extra request: the SDK's GET /v1/ping/ API-key check."
+version = "0.2.2"
+description = "Mem0 (mem0.ai) platform as an external memory provider — configure under [memory.external.mem0] in ~/.veles/config.toml with api_key and user_id (required), optional agent_id (also recall that agent's memories) and optional host. The mem0 SDK's usage telemetry is disabled by default (MEM0_TELEMETRY=False unless you set it yourself), and its local files go to ~/.veles/cache/mem0 (MEM0_DIR, unless you set it). Each recall makes one extra request: the SDK's GET /v1/ping/ API-key check."
 license = "Apache-2.0"
 requires_veles = ">=1.2,<2"
 provides = ["memory:mem0"]
