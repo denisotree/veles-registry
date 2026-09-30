@@ -143,7 +143,8 @@ def test_mem0_dir_defaults_under_veles_home(monkeypatch: pytest.MonkeyPatch, tmp
     monkeypatch.setenv("VELES_USER_HOME", str(tmp_path / "home"))
     monkeypatch.setitem(sys.modules, "mem0", None)
     mod.Mem0MemoryProvider(api_key="k", user_id="u").recall("q", limit=1)
-    assert os.environ["MEM0_DIR"] == str(tmp_path / "home" / "cache" / "mem0")
+    # VELES_USER_HOME stands in for `~` (Veles keeps its files in <it>/.veles).
+    assert os.environ["MEM0_DIR"] == str(tmp_path / "home" / ".veles" / "cache" / "mem0")
 
 
 def test_unexpected_response_shape_returns_empty(respx, capsys: pytest.CaptureFixture[str]) -> None:

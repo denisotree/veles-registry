@@ -88,8 +88,8 @@ class Mem0MemoryProvider:
 
 
 def _veles_home() -> Path:
-    """`~/.veles`, or `VELES_USER_HOME` when set — where the SDK's own files go."""
-    return Path(os.environ.get("VELES_USER_HOME") or Path.home() / ".veles")
+    """`~/.veles` — `VELES_USER_HOME` stands in for `~`, as in Veles itself."""
+    return Path(os.environ.get("VELES_USER_HOME") or Path.home()) / ".veles"
 
 
 def _to_recall_hit(item: dict[str, Any]) -> RecallHit:
