@@ -15,7 +15,7 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: >
-          uvx --python 3.13 --from 'veles-ai==1.1.0' --with pytest
+          uvx --python 3.13 --from 'veles-ai==1.2.0' --with pytest
           veles registry validate . --run-code
           --base "origin/$BASE_REF" --report review.md
       - name: Reviewer report
