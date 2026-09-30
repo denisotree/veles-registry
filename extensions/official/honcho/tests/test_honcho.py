@@ -90,6 +90,17 @@ def test_auth_error_returns_empty(capsys: pytest.CaptureFixture[str]) -> None:
     assert "Honcho recall failed" in capsys.readouterr().err
 
 
+def test_unexpected_message_shape_returns_empty(capsys: pytest.CaptureFixture[str]) -> None:
+    respx = _respx()
+    mod = _load()
+    broken = {k: v for k, v in _message("m1", "x").items() if k != "created_at"}
+    with respx.mock as router:
+        router.post(f"{BASE}/v3/workspaces").respond(json={"id": "ws"})
+        router.post(f"{BASE}/v3/workspaces/ws/search").respond(json=[broken])
+        assert _provider(mod).recall("q", limit=1) == []
+    assert "Honcho recall failed" in capsys.readouterr().err
+
+
 def test_no_sdk_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     mod = _load()
     monkeypatch.setitem(sys.modules, "honcho", None)

@@ -14,8 +14,9 @@ Telemetry: the mem0 SDK sends usage telemetry to PostHog unless
 `MEM0_TELEMETRY` is false. Veles never phones home, so this adapter sets
 `MEM0_TELEMETRY=False` (via `setdefault` — an explicit user setting wins)
 before the lazy SDK import; the SDK reads the flag once, when
-`mem0.memory.telemetry` is first imported. Even with telemetry off, importing
-the SDK writes `~/.mem0/config.json` (an anonymous `user_id`) on first use.
+`mem0.memory.telemetry` is first imported. The SDK also keeps a small
+`config.json` (an anonymous `user_id`); the adapter points `MEM0_DIR` at
+`~/.veles/cache/mem0` (again via `setdefault`) so nothing lands in `~/.mem0`.
 
 Every recall makes two requests: the SDK's `GET /v1/ping/` key check (the
 client is built per recall) and the search itself.
@@ -33,6 +34,7 @@ project `config.toml` is not; never put API keys there):
 import os
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from veles.core.memory.provider import RecallHit
@@ -66,6 +68,7 @@ class Mem0MemoryProvider:
 
     def recall(self, query: str, *, limit: int) -> list[RecallHit]:
         os.environ.setdefault("MEM0_TELEMETRY", "False")  # must precede the first mem0 import
+        os.environ.setdefault("MEM0_DIR", str(_veles_home() / "cache" / "mem0"))
         try:
             from mem0 import MemoryClient
         except ImportError:
@@ -77,11 +80,16 @@ class Mem0MemoryProvider:
         try:
             client = MemoryClient(api_key=self.api_key, host=self.host)
             response = client.search(query, filters=filters, top_k=limit)
-        except Exception as exc:
+            results = response.get("results") if isinstance(response, dict) else None
+            return [_to_recall_hit(r) for r in results or [] if isinstance(r, dict)]
+        except Exception as exc:  # an unexpected response shape too
             warn_once(f"Mem0 recall failed: {type(exc).__name__}: {exc}")
             return []
-        results = response.get("results") if isinstance(response, dict) else None
-        return [_to_recall_hit(r) for r in results or [] if isinstance(r, dict)]
+
+
+def _veles_home() -> Path:
+    """`~/.veles`, or `VELES_USER_HOME` when set — where the SDK's own files go."""
+    return Path(os.environ.get("VELES_USER_HOME") or Path.home() / ".veles")
 
 
 def _to_recall_hit(item: dict[str, Any]) -> RecallHit:

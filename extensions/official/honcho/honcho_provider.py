@@ -65,10 +65,10 @@ class HonchoMemoryProvider:
             # Peer(...) is a local handle (no request); client.peer() would get-or-create.
             source = Peer(self.peer_id, client) if self.peer_id else client
             messages = source.search(query, limit=max(1, min(limit, _MAX_LIMIT)))
-        except Exception as exc:
+            return [_to_recall_hit(m) for m in messages]
+        except Exception as exc:  # an unexpected response shape too
             warn_once(f"Honcho recall failed: {type(exc).__name__}: {exc}")
             return []
-        return [_to_recall_hit(m) for m in messages]
 
 
 def _to_recall_hit(message: Any) -> RecallHit:

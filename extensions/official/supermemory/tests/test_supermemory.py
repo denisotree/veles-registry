@@ -79,6 +79,17 @@ def test_auth_error_returns_empty(capsys: pytest.CaptureFixture[str]) -> None:
     assert "Supermemory recall failed" in capsys.readouterr().err
 
 
+def test_unexpected_result_shape_returns_empty(capsys: pytest.CaptureFixture[str]) -> None:
+    respx = _respx()
+    mod = _load()
+    with respx.mock as router:
+        router.post(f"{BASE}/v4/search").respond(
+            json={"results": [{"id": "s1", "memory": "m", "updatedAt": "t"}], "timing": 1, "total": 1}
+        )  # no `similarity`
+        assert _provider(mod).recall("q", limit=1) == []
+    assert "Supermemory recall failed" in capsys.readouterr().err
+
+
 def test_no_sdk_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     mod = _load()
     monkeypatch.setitem(sys.modules, "supermemory", None)
