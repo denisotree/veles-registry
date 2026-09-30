@@ -1,0 +1,13 @@
+[extension]
+name = "supermemory"
+kind = "module"
+version = "0.2.1"
+description = "Supermemory (supermemory.ai) as an external memory provider — configure under [memory.external.supermemory] in ~/.veles/config.toml with api_key (required), optional user_id (sent as the search container tag) and optional base_url."
+license = "Apache-2.0"
+requires_veles = ">=1.2,<2"
+provides = ["memory:supermemory"]
+requires = ["supermemory>=3.62"]
+tags = ["memory", "external"]
+
+[source]
+type = "path"
