@@ -35,6 +35,11 @@ Rules:
 - An extension kept in its own repository uses a `git` source pinned to a full commit SHA
   and the `sha256` of its files.
 - No `__pycache__`, `*.pyc`, `.git` or symlinks in a payload.
+- A module imports Veles only through `veles.sdk` (its tests may use anything). A module
+  may span several files and import them relatively (`from .helpers import x`).
+- An extension that needs another lists it as a full ref:
+  `requires_extensions = ["public:official/wiki"]` — installing it installs both under one
+  confirmation.
 
 To withdraw an extension, add `yanked = "reason"` to its `[extension]` table.
 

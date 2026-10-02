@@ -1,0 +1,5 @@
+[module]
+name = "wiki"
+description = "The LLM-wiki content engine: wiki pages, FTS search, lint, ingest and the wiki_* tools for layouts that enable [layout.engines] wiki = true."
+entrypoint = "__init__.py:register"
+version = "1.0.0"

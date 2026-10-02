@@ -1,0 +1,26 @@
+[extension]
+name = "wiki"
+kind = "module"
+version = "1.0.0"
+description = "The LLM-wiki content engine (Karpathy's LLM Wiki): wiki pages with an FTS index, recall from the wiki, dream lint/reindex, curated sessions as pages, `veles add` and `/wiki`, and the wiki_* agent tools. Active in projects whose layout sets [layout.engines] wiki = true — install the llm-wiki layout to get both."
+license = "Apache-2.0"
+requires_veles = ">=1.2.3,<2"
+provides = [
+    "engine:wiki",
+    "tool:wiki",
+    "recall:wiki",
+    "prompt:wiki",
+    "dream_step:lint",
+    "dream_step:reindex",
+    "curator_target:wiki",
+    "subproject_source:wiki",
+    "cli_command:add",
+    "slash_command:wiki",
+    "page_store:wiki",
+    "scaffold:wiki",
+    "background_op:ingest",
+]
+tags = ["wiki", "content-engine", "knowledge-base"]
+
+[source]
+type = "path"

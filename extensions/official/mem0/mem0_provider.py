@@ -37,11 +37,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from veles.core.memory.provider import RecallHit
+from veles.sdk.memory import RecallHit
 
 _SUMMARY_CAP = 200
 
-# Local helpers: a module depends only on Veles's public API (`veles.core.memory.provider`).
+# Local helpers: a module depends only on Veles's public API (`veles.sdk`).
 _warned: set[str] = set()
 
 
