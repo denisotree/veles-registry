@@ -1,0 +1,11 @@
+[extension]
+name = "notes"
+kind = "layout"
+version = "1.0.0"
+description = "A plain notes project layout: a notes/ tree the agent sorts by topic, with an organize skill. No wiki engine."
+license = "Apache-2.0"
+requires_veles = ">=1.2.3,<2"
+tags = ["layout", "notes"]
+
+[source]
+type = "path"

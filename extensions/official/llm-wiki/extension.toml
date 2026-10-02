@@ -1,0 +1,12 @@
+[extension]
+name = "llm-wiki"
+kind = "layout"
+version = "1.0.0"
+description = "Karpathy-style LLM Wiki project layout: sources/ (raw), wiki/ (LLM-written pages), INDEX.md and LOG.md, with ingest/query/lint/organize skills and the structure_design skill. Brings the wiki engine module with it."
+license = "Apache-2.0"
+requires_veles = ">=1.2.3,<2"
+requires_extensions = ["public:official/wiki"]
+tags = ["layout", "wiki", "knowledge-base"]
+
+[source]
+type = "path"
