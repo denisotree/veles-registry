@@ -15,7 +15,7 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: >
-          uvx --python 3.13 --from 'veles-ai @ git+https://github.com/denisotree/veles@52224e5de2721058cb0541d1974d6e4ac086a020'
+          uvx --python 3.13 --from 'veles-ai @ git+https://github.com/denisotree/veles@12f73160ffb4959248965967e598152df74f141e'
           --with pytest --with pytest-asyncio --with respx
           veles registry validate . --run-code --install-requires
           --base "origin/$BASE_REF" --report review.md
