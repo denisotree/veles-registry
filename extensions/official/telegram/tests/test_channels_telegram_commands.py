@@ -205,6 +205,25 @@ async def test_context_reports_occupancy_against_the_window(session_map: Session
     assert reply is not None and "25000" in reply and "100000" in reply and "25%" in reply
 
 
+class _OldDaemonClient(_UsageClient):
+    """A daemon before 1.2.5 has no usage endpoint: the client gets a 404."""
+
+    async def get_session_usage(self, session_id: str) -> dict:
+        from veles.sdk.channels import RunBackendError
+
+        raise RunBackendError("GET /v1/sessions/ses-1/usage → 404")
+
+
+async def test_usage_against_an_older_daemon_says_it_is_unavailable(
+    session_map: SessionMap,
+) -> None:
+    session_map.set("42", "ses-1")
+    gateway = TelegramGateway(bot_token="X", daemon_client=_OldDaemonClient(), session_map=session_map)  # type: ignore[arg-type]
+    for command in ("tokens", "context"):
+        reply = await dispatch(gateway, "42", command, "")
+        assert reply is not None and "unavailable" in reply
+
+
 async def test_tokens_before_any_session_says_so(session_map: SessionMap) -> None:
     gateway = TelegramGateway(bot_token="X", daemon_client=_UsageClient(), session_map=session_map)  # type: ignore[arg-type]
     reply = await dispatch(gateway, "42", "tokens", "")

@@ -12,6 +12,7 @@ ack_queued = "📥 Got it — queued, will get to it right after the current one
 tokens_line = "tokens: in <b>{tokens_in}</b> · out <b>{tokens_out}</b> · cache <b>{cache}</b> (since the daemon started)"
 context_line = "context: <b>{used}</b> of <b>{window}</b> tokens (<b>{pct}%</b>)"
 no_session_yet = "<i>send a message first to start a session</i>"
+usage_unavailable = "<i>token usage is unavailable — the daemon is older than Veles 1.2.5</i>"
 settings_title = "<b>settings</b>"
 settings_model = "model: <code>{model}</code> (set in the daemon's config)"
 settings_session = "session: <code>{session}</code>"

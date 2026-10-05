@@ -12,6 +12,7 @@ ack_queued = "📥 Принял, поставил в очередь — верн
 tokens_line = "токены: вход <b>{tokens_in}</b> · выход <b>{tokens_out}</b> · кэш <b>{cache}</b> (с запуска daemon)"
 context_line = "контекст: <b>{used}</b> из <b>{window}</b> токенов (<b>{pct}%</b>)"
 no_session_yet = "<i>сначала напишите сообщение, чтобы начать сессию</i>"
+usage_unavailable = "<i>расход токенов недоступен — daemon старше Veles 1.2.5</i>"
 settings_title = "<b>настройки</b>"
 settings_model = "модель: <code>{model}</code> (задаётся в конфиге daemon)"
 settings_session = "сессия: <code>{session}</code>"

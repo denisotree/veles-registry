@@ -102,11 +102,16 @@ async def _usage_lines(gateway: TelegramGateway, chat_key: str) -> tuple[str, st
     """(tokens line, context line) for the chat's session (M116b), or None
     before the chat has a session."""
     from veles.sdk import t
+    from veles.sdk.channels import RunBackendError
 
     sid = gateway.session_map.get(chat_key)
     if not sid:
         return None
-    u = await gateway.daemon_client.get_session_usage(sid)
+    try:
+        u = await gateway.daemon_client.get_session_usage(sid)
+    except RunBackendError:  # a daemon before 1.2.5 has no usage endpoint
+        unavailable = t("telegram.usage_unavailable")
+        return unavailable, unavailable
     window = int(u.get("context_window") or 0)
     used = int(u.get("last_prompt_tokens") or 0)
     pct = round(used / window * 100) if window else 0
