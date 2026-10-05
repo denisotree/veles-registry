@@ -13,7 +13,7 @@ enabled = true
 whitelist = ["123456789"]   # chat ids allowed to talk to the bot; empty = anyone
 ```
 
-Or set it up interactively — `veles channel add telegram` asks for the bot token
+Or set it up interactively — `veles channel add --channel telegram` asks for the bot token
 (from @BotFather) and stores it in the OS keychain. By hand:
 `veles registry install telegram`.
 
