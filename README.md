@@ -39,7 +39,10 @@ Rules:
   may span several files and import them relatively (`from .helpers import x`).
 - An extension that needs another lists it as a full ref:
   `requires_extensions = ["public:official/wiki"]` — installing it installs both under one
-  confirmation.
+  confirmation. A dependency is a module, a layout or a skill (not an `mcp` recipe), so a
+  module can build on other modules and bring the skills it uses.
+- A module may ship its own skills in `skills/<name>/SKILL.md`; they mount for every project
+  that loads the module and are reviewed with the rest of its code.
 
 To withdraw an extension, add `yanked = "reason"` to its `[extension]` table.
 
