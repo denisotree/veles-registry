@@ -25,7 +25,7 @@ installed or approved.
 3. `veles registry validate .` — the same static checks CI runs. CI also runs
    `--run-code --install-requires`: it installs each module's `requires` (pinned to Veles's
    own versions) and runs its tests against the real SDK. Test-only dependencies CI provides
-   are `pytest` and `respx`.
+   are `pytest`, `pytest-asyncio` (async tests run as-is) and `respx`.
 4. Open a pull request. A merge after review publishes it.
 
 Rules:
@@ -40,6 +40,10 @@ Rules:
 - An extension that needs another lists it as a full ref:
   `requires_extensions = ["public:official/wiki"]` — installing it installs both under one
   confirmation.
+
+- `provides` lists every contribution as `<point>:<name>`. A channel module provides
+  `platform:<name>` (see `official/telegram`): a `[channels.<name>]` block in a user's
+  config then installs it on the next `veles daemon start`.
 
 To withdraw an extension, add `yanked = "reason"` to its `[extension]` table.
 
