@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from veles.core.project import init_project
-from veles.sdk.providers import Message, ProviderContext, delegate_dir
+from veles.sdk.providers import Message, ProviderContext, delegate_workspace
 
 _PKG = "_veles_module_antigravity-cli"
 SPEC = importlib.import_module(_PKG).SPEC
@@ -22,11 +22,23 @@ def _project(tmp_path: Path):
     return init_project(tmp_path / "p", name="p")
 
 
-def test_agy_runs_in_a_scratch_workspace_not_the_project(tmp_path: Path) -> None:
+def test_agy_runs_in_a_workspace_outside_the_project(tmp_path: Path) -> None:
+    """agy reads every `.agents/` from its working directory up to the repo root —
+    inside the project it would start a cloned repo's MCP servers and hooks."""
     project = _project(tmp_path)
     prov = SPEC.build(ProviderContext(name="antigravity-cli", project=project))
-    assert Path(prov._cwd()) == delegate_dir(project) / "agy"
-    assert Path(prov._cwd()) != project.root
+    workspace = Path(prov._cwd())
+    assert workspace == delegate_workspace(project, "agy")
+    assert not workspace.is_relative_to(project.root)
+
+
+def test_a_leftover_temp_name_never_blocks_the_gate(tmp_path: Path) -> None:
+    """Two runs in one daemon write the gate at once; a fixed temp name collides."""
+    project = _project(tmp_path)
+    prov = SPEC.build(ProviderContext(name="antigravity-cli", project=project))
+    (delegate_workspace(project, "agy") / ".agents" / "hooks.tmp").mkdir(parents=True)
+    prov._cwd()
+    assert (delegate_workspace(project, "agy") / ".agents" / "hooks.json").is_file()
 
 
 def test_the_command_is_headless_stream_json(tmp_path: Path) -> None:
@@ -40,7 +52,7 @@ def test_the_command_is_headless_stream_json(tmp_path: Path) -> None:
 def test_the_tool_aware_build_wires_the_veles_server_behind_the_gate(tmp_path: Path) -> None:
     project = _project(tmp_path)
     prov = SPEC.build_tool_aware(ProviderContext(name="antigravity-cli", project=project))
-    agents = delegate_dir(project) / "agy" / ".agents"
+    agents = delegate_workspace(project, "agy") / ".agents"
     config = json.loads((agents / "mcp_config.json").read_text(encoding="utf-8"))
     assert "veles" in config["mcpServers"] and prov.supports_tools
     cmd = prov._build_cmd([Message(role="user", content="hi")], "")
@@ -51,7 +63,7 @@ def test_the_tool_aware_build_wires_the_veles_server_behind_the_gate(tmp_path: P
 def test_the_gate_is_rewritten_before_every_run(tmp_path: Path) -> None:
     project = _project(tmp_path)
     prov = SPEC.build_tool_aware(ProviderContext(name="antigravity-cli", project=project))
-    hooks = delegate_dir(project) / "agy" / ".agents" / "hooks.json"
+    hooks = delegate_workspace(project, "agy") / ".agents" / "hooks.json"
     hooks.write_text("{}", encoding="utf-8")  # tampered or lost
     prov._cwd()
     command = json.loads(hooks.read_text(encoding="utf-8"))["veles-gate"]["PreToolUse"][0]
@@ -84,13 +96,17 @@ def test_the_gate_lets_through_only_veles_tools() -> None:
     assert _gate({"name": "view_file", "args": {"AbsolutePath": escape}}) == "deny"
 
 
-def test_models_come_from_agy(monkeypatch, tmp_path: Path) -> None:
+def test_models_come_from_agy_run_in_its_workspace(monkeypatch, tmp_path: Path) -> None:
     out = "gemini-3.8-flash-high\tGemini 3.8 Flash (High)\nclaude-sonnet-4-6\tClaude Sonnet 4.6\n"
+    seen: list[str] = []
 
     def fake_run(cmd, **kw):
         assert cmd[-1] == "models"
+        seen.append(kw.get("cwd"))
         return subprocess.CompletedProcess(cmd, 0, stdout=out, stderr="")
 
+    project = _project(tmp_path)
     monkeypatch.setattr(subprocess, "run", fake_run)
-    prov = AgyProvider(project=_project(tmp_path))
+    prov = AgyProvider(project=project)
     assert prov.list_models() == ["gemini-3.8-flash-high", "claude-sonnet-4-6"]
+    assert seen == [str(delegate_workspace(project, "agy"))]

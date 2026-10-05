@@ -1,6 +1,8 @@
-"""agy as a CLI delegate. It runs in `<delegate dir>/agy/`, never the project root:
-in headless mode agy writes files in its workspace on its own, and that workspace
-must not be the user's project.
+"""agy as a CLI delegate. It runs in `delegate_workspace(project, "agy")`, a
+directory outside the project: in headless mode agy writes files in its workspace
+on its own, and it reads every `.agents/` from its working directory up to the
+repository root — inside the project it would start a cloned repo's MCP servers and
+run its hooks.
 
 Veles' tools reach agy over MCP (the workspace's `.agents/mcp_config.json`). agy
 denies every MCP call in headless mode, so the tool-aware build runs it with
@@ -15,13 +17,14 @@ import json
 import shlex
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from veles.sdk.providers import (
     CLIProvider,
     Message,
-    delegate_dir,
+    delegate_workspace,
     format_messages_as_prompt,
     veles_mcp_server,
 )
@@ -35,10 +38,13 @@ _GATE = Path(__file__).with_name("_gate.py")
 
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
+    """Atomic, with a temp name of its own: two runs in one daemon write at once."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-    tmp.replace(path)
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=path.parent, prefix=f".{path.name}.", delete=False
+    ) as fh:
+        fh.write(json.dumps(data, indent=2) + "\n")
+    Path(fh.name).replace(path)
 
 
 class AgyProvider(CLIProvider):
@@ -55,7 +61,7 @@ class AgyProvider(CLIProvider):
         binary: str = "agy",
         timeout: float = 300.0,
     ) -> None:
-        self._workspace = delegate_dir(project) / "agy" if project is not None else None
+        self._workspace = delegate_workspace(project, "agy") if project is not None else None
         tools_config: Path | None = None
         if with_veles_tools and project is not None and self._workspace is not None:
             tools_config = self._workspace / ".agents" / "mcp_config.json"
@@ -91,7 +97,14 @@ class AgyProvider(CLIProvider):
         return f"veles/{name}"  # agy calls it as call_mcp_tool(ServerName=veles, ToolName=name)
 
     def list_models(self) -> list[str]:
+        # In the workspace too: never let agy read the caller's directory's `.agents/`.
+        cwd = str(self._workspace) if self._workspace is not None else None
         out = subprocess.run(
-            [self._binary, "models"], capture_output=True, text=True, timeout=60, check=True
+            [self._binary, "models"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=True,
+            cwd=cwd,
         ).stdout
         return [line.split("\t", 1)[0].strip() for line in out.splitlines() if line.strip()]
