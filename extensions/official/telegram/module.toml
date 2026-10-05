@@ -1,0 +1,5 @@
+[module]
+name = "telegram"
+description = "Telegram channel for the Veles daemon: chat with your agent from Telegram, answer its questions with buttons, get scheduled deliveries."
+entrypoint = "__init__.py:register"
+version = "0.1.0"

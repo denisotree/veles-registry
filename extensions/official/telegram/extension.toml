@@ -1,0 +1,12 @@
+[extension]
+name = "telegram"
+kind = "module"
+version = "0.1.0"
+description = "Telegram channel for the Veles daemon: talk to your agent from a Telegram bot — streamed answers, button prompts for trust/approval and the agent's questions, voice and images (with your STT/vision setup), /mode, /goal, /settings, /tokens, /context, and scheduled deliveries to a chat. A channel declared in [channels.telegram] installs it on the next `veles daemon start`."
+license = "Apache-2.0"
+requires_veles = ">=1.2.5,<2"
+provides = ["platform:telegram"]
+tags = ["channel", "telegram", "chat", "daemon"]
+
+[source]
+type = "path"
