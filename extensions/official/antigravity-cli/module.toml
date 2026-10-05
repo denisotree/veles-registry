@@ -1,0 +1,5 @@
+[module]
+name = "antigravity-cli"
+description = "Antigravity CLI (agy) as an LLM provider: your Google subscription as the model, Veles tools over MCP."
+entrypoint = "antigravity.py:register"
+version = "0.1.0"

@@ -45,7 +45,12 @@ Rules:
   that loads the module and are reviewed with the rest of its code.
 - `provides` lists every contribution as `<point>:<name>`. A channel module provides
   `platform:<name>` (see `official/telegram`): a `[channels.<name>]` block in a user's
-  config then installs it on the next `veles daemon start`.
+  config then installs it on the next `veles daemon start`. An LLM provider module provides
+  `provider:<id>` (see `official/antigravity-cli`): naming the id in `[engine] provider`, a
+  route or `--provider` installs it on the next run.
+- A module whose directory name is not a Python identifier (`antigravity-cli`) keeps its
+  entrypoint off `__init__.py` (`entrypoint = "antigravity.py:register"`): pytest would
+  otherwise import the directory as a package and fail its relative imports.
 
 To withdraw an extension, add `yanked = "reason"` to its `[extension]` table.
 

@@ -1,0 +1,12 @@
+[extension]
+name = "antigravity-cli"
+kind = "module"
+version = "0.1.0"
+description = "Antigravity CLI (agy) as an LLM provider for Veles: run agents on your Google subscription. agy is only the model — it works in a scratch workspace, its own shell and file tools are denied, and it acts through Veles' tools (the trust ladder applies). Needs agy installed and logged in once."
+license = "Apache-2.0"
+requires_veles = ">=1.2.6,<2"
+provides = ["provider:antigravity-cli"]
+tags = ["provider", "cli", "google", "gemini", "subscription"]
+
+[source]
+type = "path"
